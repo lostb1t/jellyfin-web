@@ -203,6 +203,47 @@ function renderViewOrder(context, user, result) {
     context.querySelector('.viewOrderList').innerHTML = html;
 }
 
+function renderHomeSections(context, user, userSettings, apiClient) {
+    const options = {
+        IncludeItemTypes: "BoxSet",
+        Recursive: "true"
+    }
+
+    apiClient.getItems(user.Id, options).then(result => {
+        let html = '';
+        for (let i = 0; i <= 9; i++) {
+            // const defaultValue = homeSections.getDefaultSection(i);
+            const defaultValue = userSettings.get(`homesection${i}`);
+            // let defaultValue = homeSections.getDefaultSection(i)
+            // if (userValue !== defaultValue) {
+            //     defaultValue = userValue;
+            // }
+            console.log(defaultValue);
+            html += `<div class="selectContainer">`;
+            html += `<select is="emby-select" id="selectHomeSection${i}" label="${globalize.translate('section${i}label')}">`;
+            html += `<option ${defaultValue == "smalllibrarytiles" ? "selected" : ""} value="smalllibrarytiles">${globalize.translate('HeaderMyMedia')}</option>`;
+            html += `<option ${defaultValue == "librarybuttons" ? "selected" : ""} value="librarybuttons">${globalize.translate('HeaderMyMediaSmall')}</option>`;
+            html += `<option ${defaultValue == "activerecordings" ? "selected" : ""} value="activerecordings">${globalize.translate('HeaderActiveRecordings')}</option>`;
+            html += `<option ${defaultValue == "resume" ? "selected" : ""} value="resume">${globalize.translate('HeaderContinueWatching')}</option>`;
+            html += `<option ${defaultValue == "resumeaudio" ? "selected" : ""} value="resumeaudio">${globalize.translate('HeaderContinueListening')}</option>`;
+            html += `<option ${defaultValue == "librarybuttons" ? "selected" : ""} value="resumebook">${globalize.translate('HeaderContinueReading')}</option>`;
+            html += `<option ${defaultValue == "latestmedia" ? "selected" : ""} value="latestmedia">${globalize.translate('HeaderLatestMedia')}</option>`;
+            html += `<option ${defaultValue == "nextup" ? "selected" : ""} value="nextup">${globalize.translate('NextUp')}</option>`;
+            html += `<option ${defaultValue == "livetv" ? "selected" : ""} value="livetv">${globalize.translate('LiveTV')}</option>`;
+            html += `<option ${defaultValue == "none" ? "selected" : ""} value="none">${globalize.translate('None')}</option>`;
+            html += `<optgroup label="Collections">`;
+            result.Items.forEach((item) => {
+                html += `<option ${defaultValue == "collection:" + item.Id ? "selected" : ""} value="collection:${item.Id}">${item.Name}</option>`;
+            });
+            html += `</optgroup>  `;
+            html += `</select>`;
+            html += `</div>`;
+        };
+    
+        context.querySelector('#homeSections').innerHTML = html;
+    });
+}
+
 function updateHomeSectionValues(context, userSettings) {
     for (let i = 1; i <= numConfigurableSections; i++) {
         const select = context.querySelector(`#selectHomeSection${i}`);
@@ -294,7 +335,7 @@ function renderPerLibrarySettings(context, user, userViews, userSettings) {
 function loadForm(context, user, userSettings, apiClient) {
     context.querySelector('.chkHidePlayedFromLatest').checked = user.Configuration.HidePlayedInLatest || false;
 
-    updateHomeSectionValues(context, userSettings);
+    renderHomeSections(context, user, userSettings, apiClient);
 
     const promise1 = queryClient
         .fetchQuery(getUserViewsQuery(
@@ -383,16 +424,10 @@ function saveUser(context, user, userSettingsInstance, apiClient) {
 
     userSettingsInstance.set('tvhome', context.querySelector('.selectTVHomeScreen').value);
 
-    userSettingsInstance.set('homesection0', context.querySelector('#selectHomeSection1').value);
-    userSettingsInstance.set('homesection1', context.querySelector('#selectHomeSection2').value);
-    userSettingsInstance.set('homesection2', context.querySelector('#selectHomeSection3').value);
-    userSettingsInstance.set('homesection3', context.querySelector('#selectHomeSection4').value);
-    userSettingsInstance.set('homesection4', context.querySelector('#selectHomeSection5').value);
-    userSettingsInstance.set('homesection5', context.querySelector('#selectHomeSection6').value);
-    userSettingsInstance.set('homesection6', context.querySelector('#selectHomeSection7').value);
-    userSettingsInstance.set('homesection7', context.querySelector('#selectHomeSection8').value);
-    userSettingsInstance.set('homesection8', context.querySelector('#selectHomeSection9').value);
-    userSettingsInstance.set('homesection9', context.querySelector('#selectHomeSection10').value);
+    for (let i = 0; i <= 9; i++) {
+        userSettingsInstance.set(`homesection${i}`, context.querySelector(`#selectHomeSection${i}`).value);
+    }
+    // userSettingsInstance.set('homesection9', context.querySelector('#selectHomeSection10').value);
 
     const selectLandings = context.querySelectorAll('.selectLanding');
     for (i = 0, length = selectLandings.length; i < length; i++) {
@@ -501,6 +536,7 @@ class HomeScreenSettings {
                 self.dataLoaded = true;
 
                 loadForm(context, user, userSettings, apiClient);
+                
 
                 if (autoFocus) {
                     focusManager.autoFocus(context);

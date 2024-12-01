@@ -13,6 +13,7 @@ import { loadLiveTV } from './sections/liveTv';
 import { loadNextUp } from './sections/nextUp';
 import { loadRecentlyAdded } from './sections/recentlyAdded';
 import { loadResume } from './sections/resume';
+import { loadCollection } from './sections/collection';
 
 import 'elements/emby-button/paper-icon-button-light';
 import 'elements/emby-itemscontainer/emby-itemscontainer';
@@ -141,7 +142,8 @@ export function resume(elem, options) {
 }
 
 function loadSection(page, apiClient, user, userSettings, userViews, allSections, index) {
-    const section = allSections[index];
+    const s = allSections[index].split(':');
+    const section = s[0];
     const elem = page.querySelector('.section' + index);
     const options = { enableOverflow: enableScrollX() };
 
@@ -169,6 +171,8 @@ function loadSection(page, apiClient, user, userSettings, userViews, allSections
         case HomeSectionType.SmallLibraryTiles:
             loadLibraryTiles(elem, userViews, options);
             break;
+        case HomeSectionType.Collection:
+            return loadCollection(elem, apiClient, s[1], user, options);
         default:
             elem.innerHTML = '';
     }
