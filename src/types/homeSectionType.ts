@@ -25,5 +25,4 @@ export const DEFAULT_SECTIONS: HomeSectionType[] = [
     HomeSectionType.NextUp,
     HomeSectionType.LatestMedia,
     HomeSectionType.None,
-    HomeSectionType.Collection,
 ];
